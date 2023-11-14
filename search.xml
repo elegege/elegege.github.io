@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>笔记3</title>
+      <link href="/2023/11/14/%E7%AC%94%E8%AE%B03/"/>
+      <url>/2023/11/14/%E7%AC%94%E8%AE%B03/</url>
+      
+        <content type="html"><![CDATA[<h1 id="PHP学习与搭建网站"><a href="#PHP学习与搭建网站" class="headerlink" title="PHP学习与搭建网站"></a>PHP学习与搭建网站</h1><ol><li><h3 id="安装PHPstudy"><a href="#安装PHPstudy" class="headerlink" title="安装PHPstudy"></a>安装PHPstudy</h3></li><li><h3 id="配置PHPstudy"><a href="#配置PHPstudy" class="headerlink" title="配置PHPstudy"></a>配置PHPstudy</h3><ol><li>点击启动Apache、Mysql</li><li>更改php版本</li><li>打开根目录，清楚www文件下所有文件</li><li>点击软件管理，下载SQL_Front5.3，完成后点开管理</li><li>配置数据库</li></ol></li><li><h3 id="在www文件目录下编写php文件"><a href="#在www文件目录下编写php文件" class="headerlink" title="在www文件目录下编写php文件"></a>在www文件目录下编写php文件</h3><p>（暂无，win10虚拟机无法打开）</p></li><li><h3 id="运行php文件"><a href="#运行php文件" class="headerlink" title="运行php文件"></a>运行php文件</h3></li><li><h3 id="安装Yakit"><a href="#安装Yakit" class="headerlink" title="安装Yakit"></a>安装Yakit</h3></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> 1 </category>
+          
+      </categories>
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>笔记2</title>
       <link href="/2023/11/12/%E7%AC%94%E8%AE%B02/"/>
       <url>/2023/11/12/%E7%AC%94%E8%AE%B02/</url>
